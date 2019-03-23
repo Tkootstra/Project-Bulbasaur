@@ -15,12 +15,18 @@ native_df = pd.read_csv('native_data.csv')
 wordlist = list(native_df['words'])
 words = []
 
-for review in wordlist:
-    [words.append(word) for word in review]
+for line in wordlist:
+    line = line.replace(']', '')
+    line = line.replace('[', '')
+    line = line.replace("'", '')
+    line = line.replace(',', '')
+    sep = line.split(" ")
+    for word in sep:
+        words.append(word)
 
 print('starting embedding')
 now = time.time()
-word2vec = Word2Vec(words, min_count = 2, workers=6)
+word2vec = Word2Vec(words, min_count = 2, workers=4)
 vocab = word2vec.wv.vocab
 print('elapsed' + str(time.time() - now))
 
