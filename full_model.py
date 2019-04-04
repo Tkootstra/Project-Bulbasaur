@@ -33,9 +33,12 @@ import seaborn as sns
 
 # Set all to true if this is the first time running the script. If features.csv
 # is already in your working directory, set feature extraction to False.
-RUN_FEATURE_EXTRACTION = True
-RUN_HYPERPARAM_TUNING = True
+RUN_FEATURE_EXTRACTION = False
+RUN_HYPERPARAM_TUNING = False
 RUN_CV = True
+
+N_CORES = os.cpu_count() - 1
+TUNING_CALLS = 50
 
 
 if RUN_FEATURE_EXTRACTION:
@@ -74,8 +77,7 @@ if RUN_FEATURE_EXTRACTION:
     
 
     # Run feature extraction in parellel with n_cores (default = total_cores - 2)
-    n_cores = os.cpu_count() - 2
-    results = Parallel(n_jobs=n_cores, verbose=True)(delayed(extract_features_concurrent)(review) for review in pos_reviews)
+    results = Parallel(n_jobs=N_CORES, verbose=True)(delayed(extract_features_concurrent)(review) for review in pos_reviews)
     
     adj_ratio, adv_ratio, verb_ratio, prep_ratio, conj_ratio = (zip(*results))
           
@@ -123,10 +125,10 @@ if RUN_HYPERPARAM_TUNING:
     def objective(**params):
         model.set_params(**params)
         
-        return -np.mean(cross_val_score(model,train_data[input_features],train_data[output_feature], cv=10, n_jobs=6, scoring='roc_auc'))
+        return -np.mean(cross_val_score(model,train_data[input_features],train_data[output_feature], cv=10, n_jobs=N_CORES, scoring='roc_auc'))
     
     
-    estimator_gaussian_process = gp_minimize(objective, space, n_calls=50, verbose=True)
+    estimator_gaussian_process = gp_minimize(objective, space, n_calls=TUNING_CALLS, verbose=True)
     
     print("Best score=%.4f" % estimator_gaussian_process.fun)
 
@@ -254,5 +256,5 @@ else:
                                C=best_params[1], 
                                warm_start=best_params[2])
     
-    print(cross_val_score(model,X,y,scoring='roc_auc', n_jobs=6, cv=10))
+    print(cross_val_score(model,X,y,scoring='roc_auc', n_jobs=N_CORES, cv=10))
 
