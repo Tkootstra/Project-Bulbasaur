@@ -34,7 +34,7 @@ import seaborn as sns
 # Set all to true if this is the first time running the script. If features.csv
 # is already in your working directory, set feature extraction to False.
 RUN_FEATURE_EXTRACTION = False
-RUN_HYPERPARAM_TUNING = False
+RUN_HYPERPARAM_TUNING = True
 RUN_CV = True
 
 N_CORES = os.cpu_count() - 1
